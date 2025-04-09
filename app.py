@@ -1,9 +1,12 @@
 import streamlit as st
-import whisper
 import requests
 import tempfile
+model_name="openai/whisper-large-v3"
+API_URL = f"https://router.huggingface.co/hf-inference/models/{model_name}"
+headers = {"Authorization": 'Bearer ' + st.secrets["HUGGINGFACE_TOKEN2"]}
 
-model = whisper.load_model("turbo")
+
+
 
 if st.button("Transcribe Audio"):
     with st.spinner("Transcribing..."):
@@ -18,6 +21,7 @@ if st.button("Transcribe Audio"):
                 tmp.write(chunk)
             tmp.flush()  # Ensure data is fully written
 
-            result = model.transcribe(tmp.name)
-
-    st.markdown(result["text"])
+        payload = {'inputs': tmp.name}
+        response = requests.post(API_URL, headers=headers, json=payload)
+        response.raise_for_status()  # Check for errors in the response
+    st.markdown(response)
